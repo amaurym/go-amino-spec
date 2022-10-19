@@ -25,12 +25,12 @@ func TestAmino(t *testing.T) {
 		// with vs without omitempty
 		{
 			"with omitempty (default bahavior)",
-			&group.MsgVote{ProposalId: 0},
+			&group.MsgVote{ProposalId: 0}, // ProposalId has omitempty
 			`{"type":"cosmos-sdk/group/MsgVote","value":{}}`,
 		},
 		{
 			"jsontag without omitempty",
-			&govv1.MsgVote{ProposalId: 0},
+			&govv1.MsgVote{ProposalId: 0}, // ProposalId doesn't have omitempty
 			`{"type":"cosmos-sdk/v1/MsgVote","value":{"proposal_id":"0"}}`,
 		},
 		// pubkeys
@@ -45,7 +45,7 @@ func TestAmino(t *testing.T) {
 			`{"type":"tendermint/PubKeyEd25519","value":"AQ=="}`, // value is not {"key":"AQ=="}
 		},
 		{
-			"multisig (custom encoding)",
+			"multisig (threshold is string)",
 			&multisig.LegacyAminoPubKey{Threshold: 2},
 			`{"type":"tendermint/PubKeyMultisigThreshold","value":{"pubkeys":[],"threshold":"2"}}`, // value is not {"pubkeys":[],"threshold":2}
 		},
@@ -53,23 +53,23 @@ func TestAmino(t *testing.T) {
 		// it seems that whenever we add gogoproto.nullable=false, then we don't have omitempty either
 		{
 			"nullable=false",
-			&govv1beta1.GenesisState{}, // TallyParams has proto annotation nullable=false
+			&govv1beta1.GenesisState{}, // TallyParams has proto annotation nullable=false (golang: struct)
 			`{"deposit_params":{},"deposits":null,"proposals":null,"tally_params":{},"votes":null,"voting_params":{}}`,
 		},
 		{
 			"nullable=true",
-			&govv1.GenesisState{}, // Params doesn't have any annotation
+			&govv1.GenesisState{}, // TallyParams doesn't have any proto annotation (golang: pointer to a struct)
 			`{}`,
 		},
 		// gogoproto.nullable=false, with or without explicit omitempty
 		{
 			"nullable=false, omitempty=true",
-			&govv1.DepositParams{}, // MinDeposit has nullable=false and omitempty=true
+			&govv1.DepositParams{}, // MinDeposit has nullable=false (golang: pointer) and jsontag omitempty=true
 			`{}`,
 		},
 		{
 			"nullable=false, omitempty=false",
-			&govv1.Deposit{}, // Amount has nullable=false and omitempty=false
+			&govv1.Deposit{}, // Amount has nullable=false (golang: pointer) and jsontag omitempty=false
 			`{"amount":null}`,
 		},
 	}
